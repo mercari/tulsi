@@ -209,7 +209,6 @@ final class BazelAspectInfoExtractor: QueuedLogging {
     arguments.append(contentsOf: [
         // The following flags control Bazel console output and should not affect Bazel analysis
         // caching.
-        "--announce_rc",  // Print the RC files used by this operation.
         "--show_result=0",  // Don't bother printing the build results.
         "--noshow_loading_progress",  // Don't show Bazel's loading progress.
         "--noshow_progress",  // Don't show Bazel's build progress.
