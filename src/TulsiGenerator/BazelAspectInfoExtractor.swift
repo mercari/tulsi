@@ -214,6 +214,11 @@ final class BazelAspectInfoExtractor: QueuedLogging {
         "--noshow_progress",  // Don't show Bazel's build progress.
         "--symlink_prefix=/",  // Generate artifacts without overwriting the normal build symlinks.
     ])
+    arguments.append(contentsOf: [
+        // Don't stream build results of aspects.
+        "--bes_backend=",
+        "--bes_results_url=",
+    ])
     arguments.append(contentsOf: buildOptions)
     arguments.append(contentsOf: config.bazelFlags)
     arguments.append(contentsOf: tulsiFlags.build)
