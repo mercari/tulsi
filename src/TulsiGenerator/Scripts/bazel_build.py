@@ -1533,7 +1533,8 @@ class BazelBuildBridge(object):
         out.write('# This maps Bazel\'s execution root to that used by '
                   '%r.\n' % project_basename)
 
-      out.write('settings set target.source-map "%s" "%s"\n' % source_map)
+      out.write('settings set target.source-map "%sexternal/" "%s%s/external/"\n' % (source_map, self.tulsi_workspace))
+      out.write('settings append target.source-map "%s" "%s"\n' % source_map)
 
     return 0
 
