@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 # Copyright 2016 The Tulsi Authors. All rights reserved.
 #
@@ -362,8 +362,7 @@ class _OptionsParser(object):
     app_dir = developer_dir.split('.app')[0] + '.app'
     version_plist_path = os.path.join(app_dir, 'Contents', 'version.plist')
     try:
-      # python2 API to plistlib - needs updating if/when Tulsi bumps to python3
-      plist = plistlib.readPlist(version_plist_path)
+      plist = plistlib.load(open(version_plist_path, 'rb'))
     except IOError:
       _PrintXcodeWarning('Tulsi cannot determine Xcode version, error '
                          'reading from {}'.format(version_plist_path))
@@ -804,7 +803,7 @@ class BazelBuildBridge(object):
     process = subprocess.Popen(command,
                                stdout=subprocess.PIPE,
                                stderr=subprocess.STDOUT,
-                               bufsize=1)
+                               bufsize=0)
 
     # Register atexit function to clean up BEP file.
     atexit.register(_BEPFileExitCleanup, self.build_events_file_path)
