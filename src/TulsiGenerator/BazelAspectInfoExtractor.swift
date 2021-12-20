@@ -223,10 +223,6 @@ final class BazelAspectInfoExtractor: QueuedLogging {
         "--bes_results_url=",
     ])
     arguments.append(contentsOf: [
-        // Don't generate build event text file for aspect builds
-        "--build_event_text_file=",
-    ])
-    arguments.append(contentsOf: [
         // The following flags are used by Tulsi to identify itself and read build information from
         // Bazel. They should not affect Bazel analysis caching.
         "--tool_tag=tulsi:generator",  // Add a tag for tracking.
