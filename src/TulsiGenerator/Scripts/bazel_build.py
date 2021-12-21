@@ -803,7 +803,8 @@ class BazelBuildBridge(object):
     process = subprocess.Popen(command,
                                stdout=subprocess.PIPE,
                                stderr=subprocess.STDOUT,
-                               bufsize=0)
+                               bufsize=1,
+                               universal_newlines=True)
 
     # Register atexit function to clean up BEP file.
     atexit.register(_BEPFileExitCleanup, self.build_events_file_path)
@@ -1248,7 +1249,7 @@ class BazelBuildBridge(object):
 
         # If the archive item looks like a file, extract it.
         if not filename.endswith(os.sep):
-          with zf.open(item) as src, file(target_path, 'wb') as dst:
+          with zf.open(item) as src, open(target_path, 'wb') as dst:
             shutil.copyfileobj(src, dst)
 
         # Patch up the extracted file's attributes to match the zip content.
