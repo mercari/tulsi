@@ -1516,7 +1516,7 @@ final class PBXTargetGenerator: PBXTargetGeneratorProtocol {
 
         for info in entry.frameworkImports {
             let fullPath = info.fullPath as NSString
-            let rootedPath = "$(\(PBXTargetGenerator.BazelWorkspaceSymlinkVarName))/\(fullPath.deletingLastPathComponent)"
+            let rootedPath = "$(\(PBXTargetGenerator.BazelExecutionRootSymlinkVarName))/\(fullPath.deletingLastPathComponent)"
             frameworkSearchPathSet.add(rootedPath)
         }
     }
