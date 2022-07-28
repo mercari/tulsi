@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python
 # Copyright 2018 The Tulsi Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
