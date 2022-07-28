@@ -27,6 +27,11 @@ load(
     "IosExtensionBundleInfo",
     "SwiftInfo",
 )
+load(
+    ":tulsi/tulsi_aspects_propagation_attrs.bzl",
+    "TULSI_COMPILE_DEPS",
+    "attrs_for_target_kind",
+)
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 
 ObjcInfo = apple_common.Objc
@@ -40,31 +45,6 @@ UNSUPPORTED_FEATURES = [
     "use_header_modules",
     "fdo_instrument",
     "fdo_optimize",
-]
-
-# List of all of the attributes that can link from a Tulsi-supported rule to a
-# Tulsi-supported dependency of that rule.
-# For instance, an ios_application's "binary" attribute might link to an
-# objc_binary rule which in turn might have objc_library's in its "deps"
-# attribute.
-_TULSI_COMPILE_DEPS = [
-    "app_clips",  # For ios_application which can include app clips.
-    "bundles",
-    "deps",
-    "extension",
-    "extensions",
-    "frameworks",
-    "settings_bundle",
-    "srcs",  # To propagate down onto rules which generate source files.
-    "tests",  # for test_suite when the --noexpand_test_suites flag is used.
-    "_implicit_tests",  # test_suites without a `tests` attr have an '$implicit_tests' attr instead.
-    "test_host",
-    "additional_contents",  # macos_application can specify a dict with supported rules as keys.
-    # Special attribute name which serves as an escape hatch intended for custom
-    # rule creators who use non-standard attribute names for rule dependencies
-    # and want those dependencies to show up in Xcode.
-    "tulsi_deps",
-    "watch_application",
 ]
 
 # These are attributes that contain bundles but should not be considered as
@@ -124,6 +104,8 @@ _GENERATED_SOURCE_FILE_EXTENSIONS = [
     "mm",
     "swift",
     "swiftmodule",
+    "swiftsourceinfo",
+    "swiftdoc",
 ]
 
 TulsiSourcesAspectInfo = provider(
@@ -149,7 +131,9 @@ Filtering information for this target. Only for test target, otherwise is None.
 )
 
 TulsiOutputAspectInfo = provider(
+    doc = """Provides information about an Apple target's outputs.""",
     fields = {
+        "transitive_explicit_modules": "Depset of all explicit modules built by this target.",
         "transitive_generated_files": "Depset of tulsi generated files.",
         "transitive_embedded_bundles": "Depset of all bundles embedded into this target.",
     },
@@ -379,10 +363,18 @@ def _collect_bundle_imports(rule_attr):
 
 def _collect_framework_imports(rule_attr):
     """Extracts framework directories from the given rule attributes."""
-    return _collect_bundle_paths(
+    return _collect_xcframework_imports(rule_attr) + _collect_bundle_paths(
         rule_attr,
         ["framework_imports"],
         ".framework",
+    )
+
+def _collect_xcframework_imports(rule_attr):
+    """Extracts xcframework directories from the given rule attributes."""
+    return _collect_bundle_paths(
+        rule_attr,
+        ["xcframework_imports"],
+        ".xcframework",
     )
 
 def _collect_xcdatamodeld_files(obj, attr_path):
@@ -649,13 +641,31 @@ def _collect_swift_modules(target):
         if module.swift
     ]
 
-def _collect_module_maps(target):
-    """Returns a list of Clang module maps found on the given target."""
-    return [
-        module.clang.module_map
-        for module in target[SwiftInfo].transitive_modules.to_list()
-        if module.clang and type(module.clang.module_map) == "File"
-    ]
+def _collect_clang_modules(target):
+    """Returns a struct with lists of Clang pcms and module maps found on the given target."""
+    if not _is_swift_target(target):
+        return struct(module_maps = [], precompiled_modules = [])
+
+    module_maps = []
+    precompiled_modules = []
+
+    for module in target[SwiftInfo].transitive_modules.to_list():
+        if module.clang == None:
+            continue
+
+        # Collect precompiled modules
+        if module.clang.precompiled_module:
+            precompiled_module = struct(
+                module = module.clang.precompiled_module,
+                name = module.name,
+            )
+            precompiled_modules.append(precompiled_module)
+
+        # Collect module maps
+        if type(module.clang.module_map) == "File":
+            module_maps.append(module.clang.module_map)
+
+    return struct(module_maps = module_maps, precompiled_modules = precompiled_modules)
 
 def _collect_objc_strict_includes(target, rule_attr):
     """Returns a depset of strict includes found on the deps of given target."""
@@ -715,12 +725,13 @@ def _tulsi_sources_aspect(target, ctx):
     """Extracts information from a given rule, emitting it as a JSON struct."""
     rule = ctx.rule
     target_kind = rule.kind
+    attrs = attrs_for_target_kind(ctx.rule.kind)
     rule_attr = _get_opt_attr(rule, "attr")
     filter = _filter_for_rule(rule)
 
     transitive_info_files = []
     transitive_attributes = dict()
-    for attr_name in _TULSI_COMPILE_DEPS:
+    for attr_name in attrs:
         deps = _collect_dependencies(rule_attr, attr_name)
         for dep in _filter_deps(filter, deps):
             if TulsiSourcesAspectInfo in dep:
@@ -753,15 +764,16 @@ def _tulsi_sources_aspect(target, ctx):
     is_swift_target = _is_swift_target(target)
 
     if is_swift_target:
+        clang_modules = _collect_clang_modules(target)
         swift_transitive_modules = depset([_file_metadata(f) for f in _collect_swift_modules(target)])
-        objc_module_maps = depset([_file_metadata(f) for f in _collect_module_maps(target)])
+        objc_module_maps = depset([_file_metadata(f) for f in clang_modules.module_maps])
     else:
         swift_transitive_modules = depset()
         objc_module_maps = depset()
 
     # Collect the dependencies of this rule, dropping any .jar files (which may be
     # created as artifacts of java/j2objc rules).
-    dep_labels = _collect_dependency_labels(rule, filter, _TULSI_COMPILE_DEPS)
+    dep_labels = _collect_dependency_labels(rule, filter, attrs)
     compile_deps = [str(d) for d in dep_labels if not d.name.endswith(".jar")]
 
     supporting_files = (_collect_supporting_files(rule_attr) +
@@ -1080,6 +1092,7 @@ def _tulsi_outputs_aspect(target, ctx):
 
     rule = ctx.rule
     target_kind = rule.kind
+    attrs = attrs_for_target_kind(ctx.rule.kind)
     rule_attr = _get_opt_attr(rule, "attr")
     transitive_generated_files = []
 
@@ -1092,12 +1105,16 @@ def _tulsi_outputs_aspect(target, ctx):
     # A list of bundle infos corresponding to the dependencies of this target.
     direct_embedded_bundles = []
 
-    for attr_name in _TULSI_COMPILE_DEPS:
+    # A list of all explicit modules that have been built from this targets dependencies.
+    transitive_explicit_modules = []
+
+    for attr_name in attrs:
         deps = _collect_dependencies(rule_attr, attr_name)
         for dep in deps:
             if TulsiOutputAspectInfo in dep:
                 transitive_generated_files.append(dep[TulsiOutputAspectInfo].transitive_generated_files)
                 transitive_embedded_bundles.append(dep[TulsiOutputAspectInfo].transitive_embedded_bundles)
+                transitive_explicit_modules.append(dep[TulsiOutputAspectInfo].transitive_explicit_modules)
 
             # Retrieve the bundle info for embeddable attributes.
             if attr_name not in _TULSI_NON_EMBEDDEDABLE_ATTRS:
@@ -1162,10 +1179,11 @@ def _tulsi_outputs_aspect(target, ctx):
         if cc_info:
             all_files_depsets.append(cc_info.compilation_context.headers)
 
+    clang_modules = _collect_clang_modules(target)
     if _is_swift_target(target):
         all_files_depsets.append(_collect_swift_header(target))
         all_files_depsets.append(depset(_collect_swift_modules(target)))
-        all_files_depsets.append(depset(_collect_module_maps(target)))
+        all_files_depsets.append(depset(clang_modules.module_maps))
 
     source_files = [
         x
@@ -1187,6 +1205,11 @@ def _tulsi_outputs_aspect(target, ctx):
         transitive = transitive_generated_files,
     )
 
+    explicit_modules = depset([
+        struct(name = m.name, path = m.module.path)
+        for m in clang_modules.precompiled_modules
+    ], transitive = transitive_explicit_modules)
+
     has_dsym = _has_dsym(target)
 
     info = _struct_omitting_none(
@@ -1197,6 +1220,7 @@ def _tulsi_outputs_aspect(target, ctx):
         bundle_name = bundle_name,
         embedded_bundles = embedded_bundles.to_list(),
         has_dsym = has_dsym,
+        explicit_modules = explicit_modules.to_list(),
     )
 
     output = ctx.actions.declare_file(target.label.name + ".tulsiouts")
@@ -1205,13 +1229,14 @@ def _tulsi_outputs_aspect(target, ctx):
     return [
         OutputGroupInfo(tulsi_outputs = [output]),
         TulsiOutputAspectInfo(
+            transitive_explicit_modules = explicit_modules,
             transitive_generated_files = generated_files,
             transitive_embedded_bundles = embedded_bundles,
         ),
     ]
 
 tulsi_sources_aspect = aspect(
-    attr_aspects = _TULSI_COMPILE_DEPS,
+    attr_aspects = TULSI_COMPILE_DEPS,
     attrs = {
         "_tulsi_xcode_config": attr.label(default = configuration_field(
             name = "xcode_config_label",
@@ -1222,7 +1247,6 @@ tulsi_sources_aspect = aspect(
         )),
     },
     toolchains = ["@bazel_tools//tools/cpp:toolchain_type"],
-    incompatible_use_toolchain_transition = True,
     fragments = [
         "apple",
         "cpp",
@@ -1234,7 +1258,7 @@ tulsi_sources_aspect = aspect(
 # This aspect does not propagate past the top-level target because we only need
 # the top target outputs.
 tulsi_outputs_aspect = aspect(
-    attr_aspects = _TULSI_COMPILE_DEPS,
+    attr_aspects = TULSI_COMPILE_DEPS,
     attrs = {
         "_cc_toolchain": attr.label(
             default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),

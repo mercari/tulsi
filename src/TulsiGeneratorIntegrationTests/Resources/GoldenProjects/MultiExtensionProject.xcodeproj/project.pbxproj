@@ -16,16 +16,16 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		25889F7C0496A56C00000000 /* Info.plist */ = {isa = PBXFileReference; explicitFileType = text.plist; name = Info.plist; path = "MultiExtensionProject.xcodeproj/.tulsi/tulsi-execution-root/bazel-tulsi-includes/x/x/tulsi_e2e_multi_extension/ApplicationOne-intermediates/Info.plist"; sourceTree = SOURCE_ROOT; };
 		25889F7C06EE647600000000 /* ApplicationOne.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; name = ApplicationOne.app; path = ApplicationOne.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		25889F7C1CE2143200000000 /* Info.plist */ = {isa = PBXFileReference; explicitFileType = text.plist; name = Info.plist; path = "tulsi-workspace/bazel-tulsi-includes/x/x/tulsi_e2e_multi_extension/TodayExtension-intermediates/Info.plist"; sourceTree = "<group>"; };
-		25889F7C203FAE5B00000000 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; name = Info.plist; path = "tulsi-workspace/tulsi_e2e_multi_extension/Application/Info.plist"; sourceTree = "<group>"; };
 		25889F7C38357D4800000000 /* TodayExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; name = TodayExtension.appex; path = TodayExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
-		25889F7C424D09F400000000 /* Info.plist */ = {isa = PBXFileReference; explicitFileType = text.plist; name = Info.plist; path = "tulsi-workspace/bazel-tulsi-includes/x/x/tulsi_e2e_multi_extension/ApplicationTwo-intermediates/Info.plist"; sourceTree = "<group>"; };
 		25889F7C4339915300000000 /* BUILD */ = {isa = PBXFileReference; lastKnownFileType = text; name = BUILD; path = tulsi_e2e_multi_extension/BUILD; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.python; };
-		25889F7C8B2096C600000000 /* Info.plist */ = {isa = PBXFileReference; explicitFileType = text.plist; name = Info.plist; path = "tulsi-workspace/bazel-tulsi-includes/x/x/tulsi_e2e_multi_extension/ApplicationOne-intermediates/Info.plist"; sourceTree = "<group>"; };
-		25889F7CA4AD39EB00000000 /* entitlements.entitlements */ = {isa = PBXFileReference; lastKnownFileType = "com.apple.xcode.entitlements-property-list"; name = entitlements.entitlements; path = "tulsi-workspace/tulsi_e2e_multi_extension/Application/entitlements.entitlements"; sourceTree = "<group>"; };
+		25889F7C58C095DD00000000 /* Info.plist */ = {isa = PBXFileReference; explicitFileType = text.plist; name = Info.plist; path = "MultiExtensionProject.xcodeproj/.tulsi/tulsi-execution-root/bazel-tulsi-includes/x/x/tulsi_e2e_multi_extension/ApplicationTwo-intermediates/Info.plist"; sourceTree = SOURCE_ROOT; };
+		25889F7C681FEA0A00000000 /* entitlements.entitlements */ = {isa = PBXFileReference; lastKnownFileType = "com.apple.xcode.entitlements-property-list"; name = entitlements.entitlements; path = "MultiExtensionProject.xcodeproj/.tulsi/tulsi-execution-root/tulsi_e2e_multi_extension/Application/entitlements.entitlements"; sourceTree = SOURCE_ROOT; };
 		25889F7CAB0F56C800000000 /* Plist1.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; name = Plist1.plist; path = tulsi_e2e_multi_extension/TodayExtension/Plist1.plist; sourceTree = "<group>"; };
+		25889F7CDA2EB38600000000 /* Info.plist */ = {isa = PBXFileReference; explicitFileType = text.plist; name = Info.plist; path = "MultiExtensionProject.xcodeproj/.tulsi/tulsi-execution-root/bazel-tulsi-includes/x/x/tulsi_e2e_multi_extension/TodayExtension-intermediates/Info.plist"; sourceTree = SOURCE_ROOT; };
 		25889F7CE7EE802200000000 /* ApplicationTwo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; name = ApplicationTwo.app; path = ApplicationTwo.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		25889F7CF58F922E00000000 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; name = Info.plist; path = "MultiExtensionProject.xcodeproj/.tulsi/tulsi-execution-root/tulsi_e2e_multi_extension/Application/Info.plist"; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -63,7 +63,7 @@
 		45D056293335383100000000 /* ApplicationOne-intermediates */ = {
 			isa = PBXGroup;
 			children = (
-				25889F7C8B2096C600000000 /* Info.plist */,
+				25889F7C0496A56C00000000 /* Info.plist */,
 			);
 			name = "ApplicationOne-intermediates";
 			sourceTree = "<group>";
@@ -71,8 +71,8 @@
 		45D0562933ECA2A800000000 /* Application */ = {
 			isa = PBXGroup;
 			children = (
-				25889F7C203FAE5B00000000 /* Info.plist */,
-				25889F7CA4AD39EB00000000 /* entitlements.entitlements */,
+				25889F7CF58F922E00000000 /* Info.plist */,
+				25889F7C681FEA0A00000000 /* entitlements.entitlements */,
 			);
 			name = Application;
 			sourceTree = "<group>";
@@ -96,7 +96,7 @@
 		45D0562943A1317500000000 /* TodayExtension-intermediates */ = {
 			isa = PBXGroup;
 			children = (
-				25889F7C1CE2143200000000 /* Info.plist */,
+				25889F7CDA2EB38600000000 /* Info.plist */,
 			);
 			name = "TodayExtension-intermediates";
 			sourceTree = "<group>";
@@ -130,7 +130,7 @@
 		45D05629F7B9738100000000 /* ApplicationTwo-intermediates */ = {
 			isa = PBXGroup;
 			children = (
-				25889F7C424D09F400000000 /* Info.plist */,
+				25889F7C58C095DD00000000 /* Info.plist */,
 			);
 			name = "ApplicationTwo-intermediates";
 			sourceTree = "<group>";
@@ -159,7 +159,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = F4222DEDFF89353F00000000 /* Build configuration list for PBXNativeTarget "ApplicationOne" */;
 			buildPhases = (
-				978262AB2925DEB500000000 /* ShellScript */,
+				978262AB2925DEB500000000 /* build //tulsi_e2e_multi_extension:ApplicationOne */,
 			);
 			buildRules = (
 			);
@@ -175,7 +175,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = F4222DED905397AE00000000 /* Build configuration list for PBXNativeTarget "ApplicationTwo" */;
 			buildPhases = (
-				978262AB977812D500000000 /* ShellScript */,
+				978262AB977812D500000000 /* build //tulsi_e2e_multi_extension:ApplicationTwo */,
 			);
 			buildRules = (
 			);
@@ -191,7 +191,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = F4222DEDAD38E80000000000 /* Build configuration list for PBXNativeTarget "TodayExtension" */;
 			buildPhases = (
-				978262AB521E8B4C00000000 /* ShellScript */,
+				978262AB521E8B4C00000000 /* build //tulsi_e2e_multi_extension:TodayExtension */,
 			);
 			buildRules = (
 			);
@@ -230,7 +230,7 @@
 /* End PBXProject section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		978262AB2925DEB500000000 /* ShellScript */ = {
+		978262AB2925DEB500000000 /* build //tulsi_e2e_multi_extension:ApplicationOne */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 0;
 			files = (
@@ -238,6 +238,7 @@
 			inputPaths = (
 				"$(TARGET_BUILD_DIR)/$(INFOPLIST_PATH)",
 			);
+			name = "build //tulsi_e2e_multi_extension:ApplicationOne";
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -245,7 +246,7 @@
 			shellScript = "set -e\ncd \"${SRCROOT}/..\"\nexec \"${PROJECT_FILE_PATH}/.tulsi/Scripts/bazel_build.py\" //tulsi_e2e_multi_extension:ApplicationOne --bazel \"/fake/tulsi_test_bazel\" --bazel_bin_path \"bazel-bin\" --verbose ";
 			showEnvVarsInLog = 1;
 		};
-		978262AB521E8B4C00000000 /* ShellScript */ = {
+		978262AB521E8B4C00000000 /* build //tulsi_e2e_multi_extension:TodayExtension */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 0;
 			files = (
@@ -253,6 +254,7 @@
 			inputPaths = (
 				"$(TARGET_BUILD_DIR)/$(INFOPLIST_PATH)",
 			);
+			name = "build //tulsi_e2e_multi_extension:TodayExtension";
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -260,7 +262,7 @@
 			shellScript = "set -e\ncd \"${SRCROOT}/..\"\nexec \"${PROJECT_FILE_PATH}/.tulsi/Scripts/bazel_build.py\" //tulsi_e2e_multi_extension:TodayExtension --bazel \"/fake/tulsi_test_bazel\" --bazel_bin_path \"bazel-bin\" --verbose ";
 			showEnvVarsInLog = 1;
 		};
-		978262AB977812D500000000 /* ShellScript */ = {
+		978262AB977812D500000000 /* build //tulsi_e2e_multi_extension:ApplicationTwo */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 0;
 			files = (
@@ -268,6 +270,7 @@
 			inputPaths = (
 				"$(TARGET_BUILD_DIR)/$(INFOPLIST_PATH)",
 			);
+			name = "build //tulsi_e2e_multi_extension:ApplicationTwo";
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -319,8 +322,10 @@
 				SDKROOT = iphoneos;
 				SWIFT_INSTALL_OBJC_HEADER = NO;
 				SWIFT_OBJC_INTERFACE_HEADER_NAME = "$(PRODUCT_NAME).h";
-				TULSI_BWRS = "$(PROJECT_FILE_PATH)/.tulsi/tulsi-workspace";
+				TULSI_BWRS = "$(PROJECT_FILE_PATH)/.tulsi/tulsi-execution-root";
+				TULSI_EXECUTION_ROOT = "$(PROJECT_FILE_PATH)/.tulsi/tulsi-execution-root";
 				TULSI_LLDBINIT_FILE = "$(PROJECT_FILE_PATH)/.tulsi/Utils/lldbinit";
+				TULSI_OUTPUT_BASE = "$(PROJECT_FILE_PATH)/.tulsi/tulsi-output-base";
 				TULSI_PROJECT = MultiExtensionProject;
 				TULSI_VERSION = 9.99.999.9999;
 				TULSI_WR = "${SRCROOT}/..";
@@ -348,7 +353,7 @@
 				SWIFT_INSTALL_OBJC_HEADER = NO;
 				SWIFT_OBJC_INTERFACE_HEADER_NAME = "$(PRODUCT_NAME).h";
 				TULSI_BUILD_PATH = tulsi_e2e_multi_extension;
-				TULSI_XCODE_VERSION = 12.4.0.12D4e;
+				TULSI_XCODE_VERSION = 13.2.1.13C100;
 			};
 			name = __TulsiTestRunner_Release;
 		};
@@ -373,7 +378,7 @@
 				SWIFT_INSTALL_OBJC_HEADER = NO;
 				SWIFT_OBJC_INTERFACE_HEADER_NAME = "$(PRODUCT_NAME).h";
 				TULSI_BUILD_PATH = tulsi_e2e_multi_extension;
-				TULSI_XCODE_VERSION = 12.4.0.12D4e;
+				TULSI_XCODE_VERSION = 13.2.1.13C100;
 			};
 			name = __TulsiTestRunner_Release;
 		};
@@ -398,7 +403,7 @@
 				SWIFT_INSTALL_OBJC_HEADER = NO;
 				SWIFT_OBJC_INTERFACE_HEADER_NAME = "$(PRODUCT_NAME).h";
 				TULSI_BUILD_PATH = tulsi_e2e_multi_extension;
-				TULSI_XCODE_VERSION = 12.4.0.12D4e;
+				TULSI_XCODE_VERSION = 13.2.1.13C100;
 			};
 			name = __TulsiTestRunner_Release;
 		};
@@ -427,12 +432,14 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				HEADER_SEARCH_PATHS = "$(TULSI_BWRS) $(TULSI_WR)/bazel-bin $(TULSI_WR)/bazel-genfiles $(TULSI_BWRS)/bazel-tulsi-includes/x/x";
+				HEADER_SEARCH_PATHS = "$(TULSI_EXECUTION_ROOT) $(TULSI_WR)/bazel-bin $(TULSI_WR)/bazel-genfiles $(TULSI_EXECUTION_ROOT)/bazel-tulsi-includes/x/x";
 				ONLY_ACTIVE_ARCH = YES;
 				PYTHONIOENCODING = utf8;
 				SDKROOT = iphoneos;
-				TULSI_BWRS = "$(PROJECT_FILE_PATH)/.tulsi/tulsi-workspace";
+				TULSI_BWRS = "$(PROJECT_FILE_PATH)/.tulsi/tulsi-execution-root";
+				TULSI_EXECUTION_ROOT = "$(PROJECT_FILE_PATH)/.tulsi/tulsi-execution-root";
 				TULSI_LLDBINIT_FILE = "$(PROJECT_FILE_PATH)/.tulsi/Utils/lldbinit";
+				TULSI_OUTPUT_BASE = "$(PROJECT_FILE_PATH)/.tulsi/tulsi-output-base";
 				TULSI_PROJECT = MultiExtensionProject;
 				TULSI_VERSION = 9.99.999.9999;
 				TULSI_WR = "${SRCROOT}/..";
@@ -452,7 +459,7 @@
 				PRODUCT_NAME = ApplicationOne;
 				SDKROOT = iphoneos;
 				TULSI_BUILD_PATH = tulsi_e2e_multi_extension;
-				TULSI_XCODE_VERSION = 12.4.0.12D4e;
+				TULSI_XCODE_VERSION = 13.2.1.13C100;
 			};
 			name = Debug;
 		};
@@ -469,7 +476,7 @@
 				PRODUCT_NAME = ApplicationTwo;
 				SDKROOT = iphoneos;
 				TULSI_BUILD_PATH = tulsi_e2e_multi_extension;
-				TULSI_XCODE_VERSION = 12.4.0.12D4e;
+				TULSI_XCODE_VERSION = 13.2.1.13C100;
 			};
 			name = Debug;
 		};
@@ -486,7 +493,7 @@
 				PRODUCT_NAME = TodayExtension;
 				SDKROOT = iphoneos;
 				TULSI_BUILD_PATH = tulsi_e2e_multi_extension;
-				TULSI_XCODE_VERSION = 12.4.0.12D4e;
+				TULSI_XCODE_VERSION = 13.2.1.13C100;
 			};
 			name = Debug;
 		};
@@ -515,12 +522,14 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				HEADER_SEARCH_PATHS = "$(TULSI_BWRS) $(TULSI_WR)/bazel-bin $(TULSI_WR)/bazel-genfiles $(TULSI_BWRS)/bazel-tulsi-includes/x/x";
+				HEADER_SEARCH_PATHS = "$(TULSI_EXECUTION_ROOT) $(TULSI_WR)/bazel-bin $(TULSI_WR)/bazel-genfiles $(TULSI_EXECUTION_ROOT)/bazel-tulsi-includes/x/x";
 				ONLY_ACTIVE_ARCH = YES;
 				PYTHONIOENCODING = utf8;
 				SDKROOT = iphoneos;
-				TULSI_BWRS = "$(PROJECT_FILE_PATH)/.tulsi/tulsi-workspace";
+				TULSI_BWRS = "$(PROJECT_FILE_PATH)/.tulsi/tulsi-execution-root";
+				TULSI_EXECUTION_ROOT = "$(PROJECT_FILE_PATH)/.tulsi/tulsi-execution-root";
 				TULSI_LLDBINIT_FILE = "$(PROJECT_FILE_PATH)/.tulsi/Utils/lldbinit";
+				TULSI_OUTPUT_BASE = "$(PROJECT_FILE_PATH)/.tulsi/tulsi-output-base";
 				TULSI_PROJECT = MultiExtensionProject;
 				TULSI_VERSION = 9.99.999.9999;
 				TULSI_WR = "${SRCROOT}/..";
@@ -540,7 +549,7 @@
 				PRODUCT_NAME = ApplicationOne;
 				SDKROOT = iphoneos;
 				TULSI_BUILD_PATH = tulsi_e2e_multi_extension;
-				TULSI_XCODE_VERSION = 12.4.0.12D4e;
+				TULSI_XCODE_VERSION = 13.2.1.13C100;
 			};
 			name = Release;
 		};
@@ -557,7 +566,7 @@
 				PRODUCT_NAME = ApplicationTwo;
 				SDKROOT = iphoneos;
 				TULSI_BUILD_PATH = tulsi_e2e_multi_extension;
-				TULSI_XCODE_VERSION = 12.4.0.12D4e;
+				TULSI_XCODE_VERSION = 13.2.1.13C100;
 			};
 			name = Release;
 		};
@@ -574,7 +583,7 @@
 				PRODUCT_NAME = TodayExtension;
 				SDKROOT = iphoneos;
 				TULSI_BUILD_PATH = tulsi_e2e_multi_extension;
-				TULSI_XCODE_VERSION = 12.4.0.12D4e;
+				TULSI_XCODE_VERSION = 13.2.1.13C100;
 			};
 			name = Release;
 		};
@@ -612,8 +621,10 @@
 				SDKROOT = iphoneos;
 				SWIFT_INSTALL_OBJC_HEADER = NO;
 				SWIFT_OBJC_INTERFACE_HEADER_NAME = "$(PRODUCT_NAME).h";
-				TULSI_BWRS = "$(PROJECT_FILE_PATH)/.tulsi/tulsi-workspace";
+				TULSI_BWRS = "$(PROJECT_FILE_PATH)/.tulsi/tulsi-execution-root";
+				TULSI_EXECUTION_ROOT = "$(PROJECT_FILE_PATH)/.tulsi/tulsi-execution-root";
 				TULSI_LLDBINIT_FILE = "$(PROJECT_FILE_PATH)/.tulsi/Utils/lldbinit";
+				TULSI_OUTPUT_BASE = "$(PROJECT_FILE_PATH)/.tulsi/tulsi-output-base";
 				TULSI_PROJECT = MultiExtensionProject;
 				TULSI_VERSION = 9.99.999.9999;
 				TULSI_WR = "${SRCROOT}/..";
@@ -641,7 +652,7 @@
 				SWIFT_INSTALL_OBJC_HEADER = NO;
 				SWIFT_OBJC_INTERFACE_HEADER_NAME = "$(PRODUCT_NAME).h";
 				TULSI_BUILD_PATH = tulsi_e2e_multi_extension;
-				TULSI_XCODE_VERSION = 12.4.0.12D4e;
+				TULSI_XCODE_VERSION = 13.2.1.13C100;
 			};
 			name = __TulsiTestRunner_Debug;
 		};
@@ -666,7 +677,7 @@
 				SWIFT_INSTALL_OBJC_HEADER = NO;
 				SWIFT_OBJC_INTERFACE_HEADER_NAME = "$(PRODUCT_NAME).h";
 				TULSI_BUILD_PATH = tulsi_e2e_multi_extension;
-				TULSI_XCODE_VERSION = 12.4.0.12D4e;
+				TULSI_XCODE_VERSION = 13.2.1.13C100;
 			};
 			name = __TulsiTestRunner_Debug;
 		};
@@ -691,7 +702,7 @@
 				SWIFT_INSTALL_OBJC_HEADER = NO;
 				SWIFT_OBJC_INTERFACE_HEADER_NAME = "$(PRODUCT_NAME).h";
 				TULSI_BUILD_PATH = tulsi_e2e_multi_extension;
-				TULSI_XCODE_VERSION = 12.4.0.12D4e;
+				TULSI_XCODE_VERSION = 13.2.1.13C100;
 			};
 			name = __TulsiTestRunner_Debug;
 		};
