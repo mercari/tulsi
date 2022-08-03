@@ -27,6 +27,12 @@ load(
     "IosExtensionBundleInfo",
     "SwiftInfo",
 )
+load(
+    ":tulsi/tulsi_aspects_propagation_attrs.bzl",
+    "TULSI_COMPILE_DEPS",
+    "attrs_for_target_kind",
+)
+load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 
 ObjcInfo = apple_common.Objc
@@ -40,31 +46,6 @@ UNSUPPORTED_FEATURES = [
     "use_header_modules",
     "fdo_instrument",
     "fdo_optimize",
-]
-
-# List of all of the attributes that can link from a Tulsi-supported rule to a
-# Tulsi-supported dependency of that rule.
-# For instance, an ios_application's "binary" attribute might link to an
-# objc_binary rule which in turn might have objc_library's in its "deps"
-# attribute.
-_TULSI_COMPILE_DEPS = [
-    "app_clips",  # For ios_application which can include app clips.
-    "bundles",
-    "deps",
-    "extension",
-    "extensions",
-    "frameworks",
-    "settings_bundle",
-    "srcs",  # To propagate down onto rules which generate source files.
-    "tests",  # for test_suite when the --noexpand_test_suites flag is used.
-    "_implicit_tests",  # test_suites without a `tests` attr have an '$implicit_tests' attr instead.
-    "test_host",
-    "additional_contents",  # macos_application can specify a dict with supported rules as keys.
-    # Special attribute name which serves as an escape hatch intended for custom
-    # rule creators who use non-standard attribute names for rule dependencies
-    # and want those dependencies to show up in Xcode.
-    "tulsi_deps",
-    "watch_application",
 ]
 
 # These are attributes that contain bundles but should not be considered as
@@ -124,6 +105,8 @@ _GENERATED_SOURCE_FILE_EXTENSIONS = [
     "mm",
     "swift",
     "swiftmodule",
+    "swiftsourceinfo",
+    "swiftdoc",
 ]
 
 TulsiSourcesAspectInfo = provider(
@@ -149,7 +132,9 @@ Filtering information for this target. Only for test target, otherwise is None.
 )
 
 TulsiOutputAspectInfo = provider(
+    doc = """Provides information about an Apple target's outputs.""",
     fields = {
+        "transitive_explicit_modules": "Depset of all explicit modules built by this target.",
         "transitive_generated_files": "Depset of tulsi generated files.",
         "transitive_embedded_bundles": "Depset of all bundles embedded into this target.",
     },
@@ -218,9 +203,11 @@ def _convert_outpath_to_symlink_path(path):
 
 def _is_file_a_directory(f):
     """Returns True is the given file is a directory."""
+
     # Starting Bazel 3.3.0, the File type as a is_directory attribute.
     if getattr(f, "is_directory", None):
         return f.is_directory
+
     # If is_directory is not in the File type, fall back to the old method:
     # As of Oct. 2016, Bazel disallows most files without extensions.
     # As a temporary hack, Tulsi treats File instances pointing at extension-less
@@ -384,6 +371,32 @@ def _collect_framework_imports(rule_attr):
         ["framework_imports"],
         ".framework",
     )
+
+def _collect_framework_imports_from_xcframework_imports(
+        rule_attr,
+        target_triplet):
+    """Extracts framework directories from xcframework imports for the current target platform."""
+    all_framework_paths = _collect_bundle_paths(
+        rule_attr,
+        ["xcframework_imports"],
+        ".framework",
+    )
+
+    framework_imports = []
+    for p in all_framework_paths:
+        path = p.path
+        library_identifier = paths.basename(paths.dirname(path))
+        if not library_identifier.startswith(target_triplet.os):
+            continue
+        if target_triplet.architecture not in library_identifier:
+            continue
+        if target_triplet.environment != "simulator" and library_identifier.endswith("-simulator"):
+            continue
+        if target_triplet.environment == "simulator" and not library_identifier.endswith("-simulator"):
+            continue
+        framework_imports.append(p)
+
+    return framework_imports
 
 def _collect_xcdatamodeld_files(obj, attr_path):
     """Returns artifact_location's for xcdatamodeld's for attr_path in obj."""
@@ -613,6 +626,16 @@ def _get_platform_type(ctx):
         current_platform = str(apple_frag.single_arch_platform.platform_type)
     return current_platform
 
+def _get_single_arch_cpu(ctx):
+    """Returns the target Apple architecture for the target being built."""
+    apple_frag = _get_opt_attr(ctx.fragments, "apple")
+    return apple_frag.single_arch_cpu
+
+def _is_device(ctx):
+    """Returns True if this is a device build, False otherwise."""
+    apple_frag = _get_opt_attr(ctx.fragments, "apple")
+    return apple_frag.single_arch_platform.is_device
+
 def _minimum_os_for_platform(ctx, platform_type_str):
     """Extracts the minimum OS version for the given apple_common.platform."""
     min_os = _get_opt_attr(ctx, "rule.attr.minimum_os_version")
@@ -649,13 +672,31 @@ def _collect_swift_modules(target):
         if module.swift
     ]
 
-def _collect_module_maps(target):
-    """Returns a list of Clang module maps found on the given target."""
-    return [
-        module.clang.module_map
-        for module in target[SwiftInfo].transitive_modules.to_list()
-        if module.clang and type(module.clang.module_map) == "File"
-    ]
+def _collect_clang_modules(target):
+    """Returns a struct with lists of Clang pcms and module maps found on the given target."""
+    if not _is_swift_target(target):
+        return struct(module_maps = [], precompiled_modules = [])
+
+    module_maps = []
+    precompiled_modules = []
+
+    for module in target[SwiftInfo].transitive_modules.to_list():
+        if module.clang == None:
+            continue
+
+        # Collect precompiled modules
+        if module.clang.precompiled_module:
+            precompiled_module = struct(
+                module = module.clang.precompiled_module,
+                name = module.name,
+            )
+            precompiled_modules.append(precompiled_module)
+
+        # Collect module maps
+        if type(module.clang.module_map) == "File":
+            module_maps.append(module.clang.module_map)
+
+    return struct(module_maps = module_maps, precompiled_modules = precompiled_modules)
 
 def _collect_objc_strict_includes(target, rule_attr):
     """Returns a depset of strict includes found on the deps of given target."""
@@ -715,12 +756,13 @@ def _tulsi_sources_aspect(target, ctx):
     """Extracts information from a given rule, emitting it as a JSON struct."""
     rule = ctx.rule
     target_kind = rule.kind
+    attrs = attrs_for_target_kind(ctx.rule.kind)
     rule_attr = _get_opt_attr(rule, "attr")
     filter = _filter_for_rule(rule)
 
     transitive_info_files = []
     transitive_attributes = dict()
-    for attr_name in _TULSI_COMPILE_DEPS:
+    for attr_name in attrs:
         deps = _collect_dependencies(rule_attr, attr_name)
         for dep in _filter_deps(filter, deps):
             if TulsiSourcesAspectInfo in dep:
@@ -753,15 +795,16 @@ def _tulsi_sources_aspect(target, ctx):
     is_swift_target = _is_swift_target(target)
 
     if is_swift_target:
+        clang_modules = _collect_clang_modules(target)
         swift_transitive_modules = depset([_file_metadata(f) for f in _collect_swift_modules(target)])
-        objc_module_maps = depset([_file_metadata(f) for f in _collect_module_maps(target)])
+        objc_module_maps = depset([_file_metadata(f) for f in clang_modules.module_maps])
     else:
         swift_transitive_modules = depset()
         objc_module_maps = depset()
 
     # Collect the dependencies of this rule, dropping any .jar files (which may be
     # created as artifacts of java/j2objc rules).
-    dep_labels = _collect_dependency_labels(rule, filter, _TULSI_COMPILE_DEPS)
+    dep_labels = _collect_dependency_labels(rule, filter, attrs)
     compile_deps = [str(d) for d in dep_labels if not d.name.endswith(".jar")]
 
     supporting_files = (_collect_supporting_files(rule_attr) +
@@ -910,6 +953,14 @@ def _tulsi_sources_aspect(target, ctx):
         test_deps = None
         module_name = None
 
+    cc_toolchain = find_cpp_toolchain(ctx)
+    target_triplet = _get_apple_clang_triplet(cc_toolchain)
+    framework_imports = _collect_framework_imports(rule_attr) + \
+                        _collect_framework_imports_from_xcframework_imports(
+                            rule_attr,
+                            target_triplet,
+                        )
+
     info = _struct_omitting_none(
         artifacts = artifacts,
         attr = _struct_omitting_none(**all_attributes),
@@ -922,7 +973,7 @@ def _tulsi_sources_aspect(target, ctx):
         test_deps = test_deps,
         extensions = extensions,
         app_clips = app_clips,
-        framework_imports = _collect_framework_imports(rule_attr),
+        framework_imports = framework_imports,
         generated_files = generated_files,
         generated_non_arc_files = generated_non_arc_files,
         includes = target_includes,
@@ -1075,11 +1126,58 @@ def _filter_deps(filter, deps):
             kept_deps.append(dep)
     return kept_deps
 
+# Copied from https://github.com/bazelbuild/rules_apple/blob/8533494fa029f0fc44009c4532c191f349acf193/apple/internal/cc_toolchain_info_support.bzl
+# TODO: Remove once rules_apple has been updated to include that.
+def _get_apple_clang_triplet(cc_toolchain):
+    """Parses and performs normalization on Clang target triplet string reference.
+
+    The C++ ToolchainInfo provider `target_gnu_system_name` field references an LLVM target triple.
+    This support method parses this target triplet and normalizes information for Apple targets.
+
+    See: https://clang.llvm.org/docs/CrossCompilation.html#target-triple
+
+    Args:
+        cc_toolchain: CcToolchainInfo provider.
+    Returns:
+        A normalized Clang target triplet struct for Apple targets.
+    """
+    components = cc_toolchain.target_gnu_system_name.split("-")
+    raw_triplet = struct(
+        architecture = components[0],
+        vendor = components[1],
+        os = components[2],
+        environment = components[3] if len(components) > 3 else None,
+    )
+
+    if raw_triplet.vendor != "apple":
+        return raw_triplet
+
+    environment = "device" if (raw_triplet.environment == None) else "simulator"
+
+    # strip version from Apple platforms
+    os = raw_triplet.os
+    for index in range(len(raw_triplet.os)):
+        if raw_triplet.os[index].isdigit():
+            os = raw_triplet.os[:index]
+            break
+
+    # normalize MacOS names
+    if os in ("macos", "macosx", "darwin"):
+        os = "macos"
+
+    return struct(
+        architecture = raw_triplet.architecture,
+        vendor = raw_triplet.vendor,
+        os = os,
+        environment = environment,
+    )
+
 def _tulsi_outputs_aspect(target, ctx):
     """Collects outputs of each build invocation."""
 
     rule = ctx.rule
     target_kind = rule.kind
+    attrs = attrs_for_target_kind(ctx.rule.kind)
     rule_attr = _get_opt_attr(rule, "attr")
     transitive_generated_files = []
 
@@ -1092,12 +1190,16 @@ def _tulsi_outputs_aspect(target, ctx):
     # A list of bundle infos corresponding to the dependencies of this target.
     direct_embedded_bundles = []
 
-    for attr_name in _TULSI_COMPILE_DEPS:
+    # A list of all explicit modules that have been built from this targets dependencies.
+    transitive_explicit_modules = []
+
+    for attr_name in attrs:
         deps = _collect_dependencies(rule_attr, attr_name)
         for dep in deps:
             if TulsiOutputAspectInfo in dep:
                 transitive_generated_files.append(dep[TulsiOutputAspectInfo].transitive_generated_files)
                 transitive_embedded_bundles.append(dep[TulsiOutputAspectInfo].transitive_embedded_bundles)
+                transitive_explicit_modules.append(dep[TulsiOutputAspectInfo].transitive_explicit_modules)
 
             # Retrieve the bundle info for embeddable attributes.
             if attr_name not in _TULSI_NON_EMBEDDEDABLE_ATTRS:
@@ -1162,10 +1264,11 @@ def _tulsi_outputs_aspect(target, ctx):
         if cc_info:
             all_files_depsets.append(cc_info.compilation_context.headers)
 
+    clang_modules = _collect_clang_modules(target)
     if _is_swift_target(target):
         all_files_depsets.append(_collect_swift_header(target))
         all_files_depsets.append(depset(_collect_swift_modules(target)))
-        all_files_depsets.append(depset(_collect_module_maps(target)))
+        all_files_depsets.append(depset(clang_modules.module_maps))
 
     source_files = [
         x
@@ -1187,6 +1290,11 @@ def _tulsi_outputs_aspect(target, ctx):
         transitive = transitive_generated_files,
     )
 
+    explicit_modules = depset([
+        struct(name = m.name, path = m.module.path)
+        for m in clang_modules.precompiled_modules
+    ], transitive = transitive_explicit_modules)
+
     has_dsym = _has_dsym(target)
 
     info = _struct_omitting_none(
@@ -1197,6 +1305,7 @@ def _tulsi_outputs_aspect(target, ctx):
         bundle_name = bundle_name,
         embedded_bundles = embedded_bundles.to_list(),
         has_dsym = has_dsym,
+        explicit_modules = explicit_modules.to_list(),
     )
 
     output = ctx.actions.declare_file(target.label.name + ".tulsiouts")
@@ -1205,13 +1314,14 @@ def _tulsi_outputs_aspect(target, ctx):
     return [
         OutputGroupInfo(tulsi_outputs = [output]),
         TulsiOutputAspectInfo(
+            transitive_explicit_modules = explicit_modules,
             transitive_generated_files = generated_files,
             transitive_embedded_bundles = embedded_bundles,
         ),
     ]
 
 tulsi_sources_aspect = aspect(
-    attr_aspects = _TULSI_COMPILE_DEPS,
+    attr_aspects = TULSI_COMPILE_DEPS,
     attrs = {
         "_tulsi_xcode_config": attr.label(default = configuration_field(
             name = "xcode_config_label",
@@ -1222,7 +1332,6 @@ tulsi_sources_aspect = aspect(
         )),
     },
     toolchains = ["@bazel_tools//tools/cpp:toolchain_type"],
-    incompatible_use_toolchain_transition = True,
     fragments = [
         "apple",
         "cpp",
@@ -1234,7 +1343,7 @@ tulsi_sources_aspect = aspect(
 # This aspect does not propagate past the top-level target because we only need
 # the top target outputs.
 tulsi_outputs_aspect = aspect(
-    attr_aspects = _TULSI_COMPILE_DEPS,
+    attr_aspects = TULSI_COMPILE_DEPS,
     attrs = {
         "_cc_toolchain": attr.label(
             default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),

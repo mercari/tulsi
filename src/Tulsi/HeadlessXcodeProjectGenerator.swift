@@ -76,6 +76,10 @@ struct HeadlessXcodeProjectGenerator {
     if let project = projectDocument.project {
       config = config.configByResolvingInheritedSettingsFromProject(project)
     }
+    if let extraFlags = arguments.buildOptions {
+      config.options[.BazelBuildOptionsDebug].appendProjectValue(extraFlags)
+      config.options[.BazelBuildOptionsRelease].appendProjectValue(extraFlags)
+    }
 
     let workspaceRootURL: URL
     let projectWorkspaceRootURL = projectDocument.workspaceRootURL
@@ -93,6 +97,13 @@ struct HeadlessXcodeProjectGenerator {
         throw HeadlessModeError.invalidProjectFileContents("Invalid workspaceRoot")
       }
       workspaceRootURL = projectWorkspaceRootURL as URL
+    }
+
+    let announcement = try? Announcement.getNextUnreadAnnouncement()
+
+    if let announcementToDisplay = announcement, announcementToDisplay.shouldAppearAtTopOfCLIOutput
+    {
+      print(announcementToDisplay.createCLIOutput())
     }
 
     print("Generating project into '\(outputFolderURL.path)' using:\n" +
@@ -115,6 +126,12 @@ struct HeadlessXcodeProjectGenerator {
         }
       case .failure:
         throw HeadlessModeError.generationFailed
+    }
+
+    if let announcementToDisplay = announcement,
+      !announcementToDisplay.shouldAppearAtTopOfCLIOutput
+    {
+      print(announcementToDisplay.createCLIOutput())
     }
   }
 
