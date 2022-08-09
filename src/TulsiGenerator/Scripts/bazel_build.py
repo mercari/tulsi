@@ -490,6 +490,7 @@ class BazelBuildBridge(object):
     # Path to the directory containing the WORKSPACE file.
     self.tulsi_workspace = os.environ['TULSI_BWRS']
     self.workspace_root = os.path.abspath(os.environ['TULSI_WR'])
+    self.tulsi_output_base = os.environ['TULSI_OUTPUT_BASE']
     # Set to the name of the generated bundle for bundle-type targets, None for
     # single file targets (like static libraries).
     self.wrapper_name = os.environ.get('WRAPPER_NAME')
@@ -1594,7 +1595,7 @@ class BazelBuildBridge(object):
         out.write('# This maps Bazel\'s execution root to that used by '
                   '%r.\n' % project_basename)
 
-      out.write('settings set target.source-map "%sexternal/" "%s/external/"\n' % (source_map[0], self.tulsi_workspace))
+      out.write('settings set target.source-map "%sexternal/" "%s/external/"\n' % (source_map[0], self.tulsi_output_base))
       out.write('settings append target.source-map "%s" "%s"\n' % source_map)
 
     return 0
