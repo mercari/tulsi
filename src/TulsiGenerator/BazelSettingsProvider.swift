@@ -145,7 +145,7 @@ class BazelSettingsProvider: BazelSettingsProviderProtocol {
   ])
 
   /// Cache-able flags added by Tulsi for builds.
-  static let tulsiCacheableFlags = BazelFlagsSet(buildFlags: ["--announce_rc"])
+  static let tulsiCacheableFlags = BazelFlagsSet(buildFlags: [])
 
   /// Non-cacheable flags added by Tulsi for builds.
   static let tulsiNonCacheableFlags = BazelFlagsSet(debug: tulsiDebugFlags,

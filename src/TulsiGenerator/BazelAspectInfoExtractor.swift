@@ -209,7 +209,6 @@ final class BazelAspectInfoExtractor: QueuedLogging {
     arguments.append(contentsOf: [
         // The following flags control Bazel console output and should not affect Bazel analysis
         // caching.
-        "--announce_rc",  // Print the RC files used by this operation.
         "--show_result=0",  // Don't bother printing the build results.
         "--noshow_loading_progress",  // Don't show Bazel's loading progress.
         "--noshow_progress",  // Don't show Bazel's build progress.
@@ -218,6 +217,11 @@ final class BazelAspectInfoExtractor: QueuedLogging {
     arguments.append(contentsOf: buildOptions)
     arguments.append(contentsOf: config.bazelFlags)
     arguments.append(contentsOf: tulsiFlags.build)
+    arguments.append(contentsOf: [
+        // Don't stream build results of aspects.
+        "--bes_backend=",
+        "--bes_results_url=",
+    ])
     arguments.append(contentsOf: [
         // The following flags are used by Tulsi to identify itself and read build information from
         // Bazel. They should not affect Bazel analysis caching.

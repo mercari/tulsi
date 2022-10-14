@@ -630,6 +630,16 @@ def _get_platform_type(ctx):
         current_platform = str(apple_frag.single_arch_platform.platform_type)
     return current_platform
 
+def _get_single_arch_cpu(ctx):
+    """Returns the target Apple architecture for the target being built."""
+    apple_frag = _get_opt_attr(ctx.fragments, "apple")
+    return apple_frag.single_arch_cpu
+
+def _is_device(ctx):
+    """Returns True if this is a device build, False otherwise."""
+    apple_frag = _get_opt_attr(ctx.fragments, "apple")
+    return apple_frag.single_arch_platform.is_device
+
 def _minimum_os_for_platform(ctx, platform_type_str):
     """Extracts the minimum OS version for the given apple_common.platform."""
     min_os = _get_opt_attr(ctx, "rule.attr.minimum_os_version")

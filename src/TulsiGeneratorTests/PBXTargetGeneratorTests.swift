@@ -359,6 +359,7 @@ class PBXTargetGeneratorTestsWithFiles: XCTestCase {
       PBXTargetGenerator.BazelExecutionRootSymlinkVarName: "$(PROJECT_FILE_PATH)/" + PBXTargetGenerator.TulsiExecutionRootSymlinkPath,
       PBXTargetGenerator.BazelExecutionRootSymlinkLegacyVarName: "$(PROJECT_FILE_PATH)/" + PBXTargetGenerator.TulsiExecutionRootSymlinkPath,
       PBXTargetGenerator.BazelOutputBaseSymlinkVarName: "$(PROJECT_FILE_PATH)/" + PBXTargetGenerator.TulsiOutputBaseSymlinkPath,
+      "TULSI_WR": "$(SRCROOT)",
     ]
 
     XCTAssertNotNil(topLevelConfigs["Debug"])

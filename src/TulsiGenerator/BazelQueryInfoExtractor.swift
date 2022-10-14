@@ -153,7 +153,6 @@ final class BazelQueryInfoExtractor: QueuedLogging {
     arguments.append("query")
     arguments.append(contentsOf: bazelUniversalFlags.build)
     arguments.append(contentsOf: [
-        "--announce_rc",  // Print the RC files used by this operation.
         "--noimplicit_deps",
         "--order_output=no",
         "--noshow_loading_progress",
