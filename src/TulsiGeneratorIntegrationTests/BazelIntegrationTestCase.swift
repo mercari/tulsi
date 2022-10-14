@@ -44,8 +44,11 @@ class BazelIntegrationTestCase: XCTestCase {
     let tempdir = ProcessInfo.processInfo.environment["TEST_TMPDIR"] ?? NSTemporaryDirectory()
     let tempdirURL = URL(fileURLWithPath: tempdir,
                          isDirectory: true)
+    localizedMessageLogger = DirectLocalizedMessageLogger()
+    localizedMessageLogger.startLogging()
     fakeBazelWorkspace = BazelFakeWorkspace(runfilesURL: runfilesURL,
-                                            tempDirURL: tempdirURL).setup()
+                                            tempDirURL: tempdirURL,
+                                            messageLogger: localizedMessageLogger).setup()
     pathsToCleanOnTeardown.formUnion(fakeBazelWorkspace.pathsToCleanOnTeardown)
     workspaceRootURL = fakeBazelWorkspace.workspaceRootURL
     bazelURL = fakeBazelWorkspace.bazelURL
@@ -82,19 +85,22 @@ class BazelIntegrationTestCase: XCTestCase {
 
     // Set the default deployment versions for all platforms to prevent different Xcode from
     // producing different generated projects that only differ on *_DEPLOYMENT_VERSION values.
-    bazelBuildOptions.append("--ios_minimum_os=8.0")
-    bazelBuildOptions.append("--macos_minimum_os=10.10")
-    bazelBuildOptions.append("--tvos_minimum_os=10.0")
-    bazelBuildOptions.append("--watchos_minimum_os=3.0")
+    bazelBuildOptions.append("--ios_minimum_os=11.0")
+    bazelBuildOptions.append("--macos_minimum_os=10.13")
+    bazelBuildOptions.append("--tvos_minimum_os=11.0")
+    bazelBuildOptions.append("--watchos_minimum_os=4.0")
 
     // Explicitly set Xcode version to use. Must use the same version or the golden files
     // won't match.
-    bazelBuildOptions.append("--xcode_version=13.2.1")
+    bazelBuildOptions.append("--xcode_version=13.4.1")
 
     // We rely on dynamic execution in the tests, so we can't disable it for
     // the clean builds.
     // TODO(b/203094728): Remove this when it is removed from the ox bazelrc.
     bazelBuildOptions.append("--noexperimental_dynamic_skip_first_build")
+
+    // TODO: Fix cases that relied on the old behavior and remove this flag.
+    bazelBuildOptions.append("--incompatible_unambiguous_label_stringification=false")
 
     guard let workspaceRootURL = workspaceRootURL else {
       fatalError("Failed to find workspaceRootURL.")
@@ -108,8 +114,6 @@ class BazelIntegrationTestCase: XCTestCase {
         "--override_repository=tulsi=\(bazelWorkspace.path)"
     ])
 
-    localizedMessageLogger = DirectLocalizedMessageLogger()
-    localizedMessageLogger.startLogging()
     workspaceInfoFetcher = BazelWorkspacePathInfoFetcher(bazelURL: bazelURL,
                                                          workspaceRootURL: workspaceRootURL,
                                                          bazelUniversalFlags: bazelUniversalFlags,

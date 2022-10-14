@@ -33,7 +33,7 @@ load(
     "attrs_for_target_kind",
 )
 load("@bazel_skylib//lib:paths.bzl", "paths")
-load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
+load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain", "use_cpp_toolchain")
 
 ObjcInfo = apple_common.Objc
 
@@ -571,10 +571,14 @@ def _extract_compiler_defines(ctx):
         cxx = cpp_fragment.cxx_options([])
         defines += _extract_defines_from_option_list(cxx)
 
-    objc_fragment = _get_opt_attr(ctx.fragments, "objc")
-    if objc_fragment:
-        objc_copts = _get_opt_attr(objc_fragment, "copts")
+    if hasattr(cpp_fragment, "objccopts"):
+        objc_copts = _get_opt_attr(cpp_fragment, "objccopts")
         defines += _extract_defines_from_option_list(objc_copts)
+    else:
+        objc_fragment = _get_opt_attr(ctx.fragments, "objc")
+        if objc_fragment:
+            objc_copts = _get_opt_attr(objc_fragment, "copts")
+            defines += _extract_defines_from_option_list(objc_copts)
 
     return defines
 
@@ -1331,7 +1335,7 @@ tulsi_sources_aspect = aspect(
             "@bazel_tools//tools/cpp:current_cc_toolchain",
         )),
     },
-    toolchains = ["@bazel_tools//tools/cpp:toolchain_type"],
+    toolchains = use_cpp_toolchain(),
     fragments = [
         "apple",
         "cpp",
@@ -1355,4 +1359,5 @@ tulsi_outputs_aspect = aspect(
         "objc",
     ],
     implementation = _tulsi_outputs_aspect,
+    toolchains = use_cpp_toolchain(),
 )

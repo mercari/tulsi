@@ -42,6 +42,7 @@ import bazel_build_settings
 import bazel_options
 from bootstrap_lldbinit import BootstrapLLDBInit
 from bootstrap_lldbinit import TULSI_LLDBINIT_FILE
+import pkg_resources
 import resigner
 import tulsi_logging
 from update_symbol_cache import UpdateSymbolCache
@@ -537,8 +538,15 @@ class BazelBuildBridge(object):
                        'set.  Please file a bug against Tulsi.')
       sys.exit(1)
     arch = archs.split()[-1]
-    if self.is_simulator and arch == "arm64":
-      self.arch = "sim_" + arch
+    if self.is_simulator and arch == 'arm64':
+      self.arch = 'sim_' + arch
+    # Xcode sets the ARCHS environment variable to both x86_64 and arm64 when
+    # building for watchOS simulator. Simulators have the same architecture as
+    # the host machine so we avoid picking the wrong one here by directly
+    # looking up the host architecture.
+    elif self.platform_name == 'watchsimulator':
+      host_arch = os.uname().machine
+      self.arch = host_arch
     else:
       self.arch = arch
 
@@ -1070,6 +1078,18 @@ class BazelBuildBridge(object):
         bundle_path = self._FindEmbeddedBundleInMain(bundle_name,
                                                      bundle_extension)
         if bundle_path:
+          # Incremental installation can fail if an embedded bundle is
+          # recompiled but the Info.plist is not updated. This causes the delta
+          # bundle that Xcode actually installs to not have a bundle ID for the
+          # embedded bundle. Avoid this potential issue by always including the
+          # Info.plist in the delta bundle. For some unknown reason, this issue
+          # only occurs in iOS 16.
+          os_version = pkg_resources.parse_version(
+              os.environ['TARGET_DEVICE_OS_VERSION'])
+          if (self.platform_name.startswith('macos') or self.is_simulator) and (
+              os_version >= pkg_resources.parse_version('16')):
+            bundle_info_plist = os.path.join(bundle_path, 'Info.plist')
+            os.utime(bundle_info_plist, None)
           self._RsyncBundle(full_name, bundle_path, output_path)
         else:
           _PrintXcodeWarning('Could not find bundle %s in main bundle. ' %
@@ -1579,6 +1599,13 @@ class BazelBuildBridge(object):
       out.write(
           'settings set -- target.swift-extra-clang-flags "-fimplicit-module-maps"\n'
       )
+      if int(os.environ['XCODE_VERSION_MINOR']) >= 1330:
+        out.write('# This ensures LLDB\'s AST context never has this flag set '
+                  'which would make the AST incompatible with the AST\'s '
+                  'serialized in our precompiled modules.\n')
+        out.write(
+            'settings append target.swift-extra-clang-flags " -fno-ptrauth-objc-class-ro"\n'
+        )
 
       if clear_source_map:
         out.write('settings clear target.source-map\n')
